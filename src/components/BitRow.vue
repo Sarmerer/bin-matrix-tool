@@ -1,5 +1,11 @@
 <template>
-  <tr>
+  <div>
+    <p
+      v-if="!rightAligned"
+      style="margin:0 0.5rem 0 0; width: 1rem; display: inline-block;"
+    >
+      {{ index }}
+    </p>
     <input
       class="checkbox"
       :class="{
@@ -11,34 +17,42 @@
       type="checkbox"
       v-model="input.value"
     />
-    <h4 style="margin: 0; display: inline-block; width: 2rem;">
-      0x{{ values.hex }}
-    </h4>
-  </tr>
+    <!-- <h4 style="margin: 0; display: inline-block; width: 2rem;">
+      0x{{ result }}
+    </h4> -->
+    <p
+      v-if="rightAligned"
+      style="margin:0 0.5rem 0 0; width: 1rem; display: inline-block;"
+    >
+      {{ index }}
+    </p>
+  </div>
 </template>
 
 <script>
 export default {
   name: "BitRow",
   props: {
-    value: { type: Number, default: 0 },
+    index: { type: Number, default: 0, required: true },
+    value: { type: String, default: "0", required: true },
+    rightAligned: { type: Boolean, default: false },
   },
   watch: {
-    values: function(newValue) {
-      this.$emit("value-change", newValue.dec || 0);
+    result: function(newValue) {
+      this.$emit("value-change", newValue || "0");
     },
   },
   computed: {
-    values() {
+    result() {
       let input = this.binInput.map((bi) => (bi.value ? "1" : "0")).join("");
-      let dec = Number.parseInt(input, 2);
-      let oct = dec.toString(8);
-      let hex = dec.toString(16);
-      return { dec, oct, hex };
+      let hex = parseInt(input, 2)
+        .toString(16)
+        .toUpperCase();
+      return hex;
     },
   },
   beforeMount() {
-    let bin = this.decToBin(this.value);
+    let bin = this.hexToBin(this.value);
     this.binInput.forEach((b, i) => (b.value = bin[i] == true));
   },
   data() {
@@ -56,9 +70,14 @@ export default {
     };
   },
   methods: {
-    decToBin(n) {
-      if (n < 0 || n > 255 || n % 1 !== 0) n = 0;
-      return ("000000000" + n.toString(2)).substr(-8);
+    hexToBin(n) {
+      if (!this.isValidHex(n)) n = "0";
+      return parseInt(n, 16)
+        .toString(2)
+        .padStart(8, "0");
+    },
+    isValidHex(hex) {
+      return typeof hex === "string" && !isNaN(Number("0x" + hex));
     },
   },
 };

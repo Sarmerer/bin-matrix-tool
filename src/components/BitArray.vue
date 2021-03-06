@@ -10,21 +10,40 @@
     <button @click="deleteAll">
       Delete
     </button>
+    <select v-model="layout">
+      <option>default</option>
+      <option>stack</option>
+      <option>sequence</option>
+    </select>
     <div class="container">
       <div class="columns">
         <div class="column input">
-          <table class="table">
+          <div
+            class="table"
+            :style="{
+              'grid-template-columns':
+                layout !== 'default' ? '50% 50%' : '100%',
+              'grid-template-rows':
+                layout === 'stack' ? gridRowsTemplate(components.length) : '',
+              'grid-auto-flow': layout === 'stack' ? 'column' : 'row',
+            }"
+          >
             <component
               v-for="(component, index) in components"
               :key="`${component.id}#${component.value}`"
+              :index="component.id"
+              :rightAligned="isRightAligned(component.id)"
               :value="component.value"
-              v-on:value-change="updateValue(index, $event)"
+              v-on:value-change="updateValue(component, $event)"
               v-on:splice="deleteOne(index)"
               :is="component.component"
+              @contextmenu.native.prevent="contextMenuHandler($event)"
             ></component>
-          </table>
+          </div>
         </div>
-        <div class="column preview"></div>
+        <div class="column preview">
+          <p>{{ components.map((c) => `0x${c.value || "00"}`) }}</p>
+        </div>
       </div>
     </div>
   </div>
@@ -38,17 +57,36 @@ export default {
   components: {
     BitRow,
   },
-  data() {
-    return {
-      addAmount: 0,
-      storeData: null,
-      components: [],
-    };
+  computed: {
+    sortedComponents() {
+      let clone = [...this.components];
+      let result;
+      switch (this.layout) {
+        case "default":
+          result = this.defaultLayoutSort(clone);
+          break;
+        case "stack":
+          result = this.stackLayoutSort(clone);
+          break;
+        case "sequence":
+          result = this.defaultLayoutSort(clone);
+          break;
+      }
+      return result;
+    },
   },
   beforeMount() {
     window.addEventListener("beforeunload", this.save);
     this.storeData = store.load();
     this.addConverters(this.storeData.length, this.storeData);
+  },
+  data() {
+    return {
+      addAmount: 0,
+      storeData: null,
+      layout: "default",
+      components: [],
+    };
   },
   methods: {
     addConverters(amount, values) {
@@ -59,7 +97,7 @@ export default {
           : 0;
 
         let id = lastID + 1;
-        let value = values && values[i] ? values[i] : 0;
+        let value = values && values[i] ? values[i] : "0";
 
         let component = {
           id: id,
@@ -73,8 +111,8 @@ export default {
     deleteOne(index) {
       this.$delete(this.components, index);
     },
-    updateValue(index, newValue) {
-      this.components[index].value = newValue;
+    updateValue(component, newValue) {
+      component.value = newValue;
     },
     clearAll() {
       this.components.forEach((c) => (c.value = 0));
@@ -86,6 +124,34 @@ export default {
       let saveData = this.components.map((c) => c.value);
       store.save(saveData);
       window.removeEventListener("beforeunload", this.save);
+    },
+    defaultLayoutSort(array) {
+      return array.sort((a, b) => a.id - b.id);
+    },
+    stackLayoutSort(array) {
+      let median = Math.ceil(array.length * 0.5);
+      let firstHalf = array.filter((_, i) => i + 1 <= median);
+      let secondHalf = array.filter((_, i) => i + 1 > median);
+      let sorted = [];
+
+      for (let i = 0; i < firstHalf.length; i++) {
+        if (firstHalf[i]) sorted.push(firstHalf[i]);
+        if (secondHalf[i]) sorted.push(secondHalf[i]);
+      }
+
+      return [...sorted];
+    },
+    contextMenuHandler() {},
+    gridRowsTemplate(n) {
+      return new Array(Math.ceil(n * 0.5)).fill("auto").join(" ");
+    },
+    isRightAligned(id) {
+      if (this.layout === "stack") {
+        let median = Math.ceil(this.components.length * 0.5);
+        return id > median;
+      } else if (this.layout === "sequence") {
+        return id % 2 == false;
+      }
     },
   },
 };
@@ -117,7 +183,7 @@ export default {
 }
 
 .table {
-  border-spacing: 0;
+  display: grid;
   padding: 0.5rem 0.4rem 0.5rem 0.4rem;
   background-color: var(--secondary);
   border-radius: 0.4rem 0 0 0.4rem;
@@ -126,6 +192,6 @@ export default {
 
 .columns > .preview {
   align-items: flex-start;
-  /* background-color: #2b2b2b; */
+  text-align: start;
 }
 </style>
