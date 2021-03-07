@@ -1,48 +1,81 @@
 <template>
-  <div>
-    <button @click="addConverters(Number.parseInt(addAmount) || 1)">
-      Add
-    </button>
-    <input type="number" v-model="addAmount" />
-    <button @click="clearAll">
-      Clear
-    </button>
-    <button @click="deleteAll">
-      Delete
-    </button>
-    <select v-model="layout">
-      <option>default</option>
-      <option>stack</option>
-      <option>sequence</option>
-    </select>
+  <div class="wrapper">
+    <context-menu ref="contextMenu" v-on:close-event="selectedComponent = null">
+      <template #items>
+        <button class="item" @click="contextCopyHandler('hex')">
+          Copy hex
+        </button>
+        <button class="item" @click="contextCopyHandler('bin')">
+          Copy bin
+        </button>
+        <hr />
+        <button
+          class="item"
+          @click="contextClearHandler"
+          :disabled="selectedIsEmpty()"
+        >
+          Clear
+        </button>
+        <button class="item" @click="contextDeleteHandler">Delete</button>
+      </template>
+    </context-menu>
+    <div class="header">
+      <button @click="addConverters(Number.parseInt(addAmount) || 1)">
+        Add
+      </button>
+      <input type="number" v-model="addAmount" />
+      <button @click="clearAll">
+        Clear
+      </button>
+      <button @click="deleteAll">
+        Delete
+      </button>
+      <select v-model="layout">
+        <option>default</option>
+        <option>stack</option>
+        <option>sequence</option>
+      </select>
+    </div>
     <div class="container">
-      <div class="columns">
-        <div class="column input">
-          <div
-            class="table"
-            :style="{
-              'grid-template-columns':
-                layout !== 'default' ? '50% 50%' : '100%',
-              'grid-template-rows':
-                layout === 'stack' ? gridRowsTemplate(components.length) : '',
-              'grid-auto-flow': layout === 'stack' ? 'column' : 'row',
-            }"
-          >
-            <component
-              v-for="(component, index) in components"
-              :key="`${component.id}#${component.value}`"
-              :index="component.id"
-              :rightAligned="isRightAligned(component.id)"
-              :value="component.value"
-              v-on:value-change="updateValue(component, $event)"
-              v-on:splice="deleteOne(index)"
-              :is="component.component"
-              @contextmenu.native.prevent="contextMenuHandler($event)"
-            ></component>
-          </div>
+      <div class="inputs">
+        <div
+          class=" table"
+          :style="{
+            'grid-template-columns':
+              layout !== 'default' && components.length > 1
+                ? '50% 50%'
+                : '100%',
+            'grid-template-rows':
+              layout === 'stack' ? gridRowsTemplate(components.length) : '',
+            'grid-auto-flow': layout === 'stack' ? 'column' : 'row',
+          }"
+        >
+          <component
+            v-for="(component, index) in components"
+            :key="`input#${component.id}#${component.value}`"
+            class="input-item"
+            :class="{ 'row-hover': component.hovered }"
+            :index="component.id"
+            :rightAligned="isRightAligned(component.id)"
+            :value="component.value"
+            v-on:value-change="updateValue(component, $event)"
+            v-on:splice="deleteOne(index)"
+            :ref="`input#${component.id}`"
+            :is="component.component"
+            @contextmenu.native.prevent="contextMenuHandler($event, component)"
+          ></component>
         </div>
-        <div class="column preview">
-          <p>{{ components.map((c) => `0x${c.value || "00"}`) }}</p>
+      </div>
+      <div class="sidebar">
+        <div
+          class="preview-item"
+          v-for="component in components"
+          :key="`preview#${component.id}`"
+          @mouseover="component.hovered = true"
+          @mouseleave="component.hovered = false"
+          @click="highlight(component.id)"
+        >
+          {{ component.value ? `0x${component.value}` : "00" }}
         </div>
       </div>
     </div>
@@ -51,10 +84,12 @@
 <script>
 import BitRow from "@/components/BitRow.vue";
 import store from "@/store/store";
+import ContextMenu from "@/components/ContextMenu.vue";
 
 export default {
   name: "BitArray",
   components: {
+    ContextMenu,
     BitRow,
   },
   computed: {
@@ -86,8 +121,10 @@ export default {
       storeData: null,
       layout: "default",
       components: [],
+      selectedComponent: null,
     };
   },
+
   methods: {
     addConverters(amount, values) {
       if (!amount) amount = 1;
@@ -102,6 +139,7 @@ export default {
         let component = {
           id: id,
           value: value,
+          hovered: false,
           component: BitRow,
         };
         this.components.push(component);
@@ -115,33 +153,43 @@ export default {
       component.value = newValue;
     },
     clearAll() {
-      this.components.forEach((c) => (c.value = 0));
+      this.components.forEach((c) => (c.value = "0"));
     },
     deleteAll() {
-      this.components = [];
+      this.components = [
+        {
+          id: 1,
+          value: "0",
+          hovered: false,
+          component: BitRow,
+        },
+      ];
     },
     save() {
       let saveData = this.components.map((c) => c.value);
       store.save(saveData);
       window.removeEventListener("beforeunload", this.save);
     },
-    defaultLayoutSort(array) {
-      return array.sort((a, b) => a.id - b.id);
-    },
-    stackLayoutSort(array) {
-      let median = Math.ceil(array.length * 0.5);
-      let firstHalf = array.filter((_, i) => i + 1 <= median);
-      let secondHalf = array.filter((_, i) => i + 1 > median);
-      let sorted = [];
 
-      for (let i = 0; i < firstHalf.length; i++) {
-        if (firstHalf[i]) sorted.push(firstHalf[i]);
-        if (secondHalf[i]) sorted.push(secondHalf[i]);
+    contextMenuHandler(event, clickedComponent) {
+      this.selectedComponent = clickedComponent;
+      this.$refs.contextMenu.open(event);
+    },
+    contextCopyHandler() {
+      this.$copyText(this.selectedComponent.value);
+    },
+    contextClearHandler() {
+      this.selectedComponent.value = "0";
+    },
+    contextDeleteHandler() {
+      this.$delete(
+        this.components,
+        this.components.map((c) => c.id).indexOf(this.selectedComponent.id)
+      );
+      for (let i = 0; i < this.components.length; i++) {
+        this.components[i].id = i + 1;
       }
-
-      return [...sorted];
     },
-    contextMenuHandler() {},
     gridRowsTemplate(n) {
       return new Array(Math.ceil(n * 0.5)).fill("auto").join(" ");
     },
@@ -153,45 +201,87 @@ export default {
         return id % 2 == false;
       }
     },
+    selectedIsEmpty() {
+      return this.selectedComponent && this.selectedComponent.value != 0
+        ? false
+        : true;
+    },
+    highlight(id) {
+      const el = this.$refs[`input#${id}`][0]?.$el;
+      if (el?.scrollIntoView) {
+        el.scrollIntoView({ behavior: "smooth" });
+      }
+    },
   },
 };
 </script>
 <style scoped>
-.container {
-  margin: 0 auto;
-  width: 70%;
+.wrapper {
+  height: 100%;
 }
 
-.columns {
+.container {
   display: flex;
-  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.header {
+  height: 1.5rem;
+}
+
+.inputs {
+  flex: 1 1 auto;
+  height: fit-content;
+
+  display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 0.5rem;
-}
-
-.columns > .column {
-  display: flex;
-  flex-direction: column;
-  flex-basis: 100%;
-  flex: 1;
-}
-
-.columns > .input {
-  align-items: flex-end;
-  /* background-color: #1e1e1e; */
+  overflow-y: auto;
+  max-height: calc(100vh - 1.5rem);
 }
 
 .table {
+  width: fit-content;
   display: grid;
   padding: 0.5rem 0.4rem 0.5rem 0.4rem;
   background-color: var(--secondary);
-  border-radius: 0.4rem 0 0 0.4rem;
+  border-radius: 0.4rem;
   box-shadow: 0.1rem 0.1rem 0.2rem 0px black;
 }
 
-.columns > .preview {
-  align-items: flex-start;
-  text-align: start;
+.inputs .input-item {
+  border-radius: 0.4rem;
+  transition: box-shadow 0.1s linear;
+}
+
+.sidebar {
+  flex: 1 1 20%;
+  max-width: 20%;
+
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  overflow-y: auto;
+  max-height: calc(100vh - 1.5rem);
+  background-color: var(--secondary);
+}
+
+.sidebar .preview-item {
+  height: fit-content;
+  width: fit-content;
+  border-radius: 0.2rem;
+  padding: 0.1rem;
+  margin: 0;
+}
+
+.sidebar .preview-item:hover {
+  background-color: #faed27;
+  color: var(--bg-color);
+}
+
+.inputs .row-hover {
+  box-shadow: inset 0 0 0 2px #faed27;
 }
 </style>

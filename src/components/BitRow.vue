@@ -2,7 +2,7 @@
   <div>
     <p
       v-if="!rightAligned"
-      style="margin:0 0.5rem 0 0; width: 1rem; display: inline-block;"
+      style="margin:0 0.1rem 0 0; width: 1rem; display: inline-block;"
     >
       {{ index }}
     </p>
@@ -22,7 +22,7 @@
     </h4> -->
     <p
       v-if="rightAligned"
-      style="margin:0 0.5rem 0 0; width: 1rem; display: inline-block;"
+      style="margin:0 0 0 0.1rem; width: 1rem; display: inline-block;"
     >
       {{ index }}
     </p>
@@ -34,7 +34,7 @@ export default {
   name: "BitRow",
   props: {
     index: { type: Number, default: 0, required: true },
-    value: { type: String, default: "0", required: true },
+    value: { type: String, default: "0" },
     rightAligned: { type: Boolean, default: false },
   },
   watch: {
@@ -96,18 +96,15 @@ export default {
 .checkbox {
   -webkit-appearance: none;
   background-color: var(--bg-color);
-  border-right: solid 1px transparent;
-  border-left: solid 1px transparent;
-  border-top: solid 1px transparent;
-  border-bottom: solid 1px transparent;
+  border: 1px solid transparent;
   padding: 0.4rem 0.7rem 0.4rem 0.7rem;
-  margin: 0.1rem;
+  margin: 2px;
   outline: none;
 }
 
 .checkbox:active,
 .checkbox:checked:active {
-  border: grey solid 1px;
+  border: #43b581 solid 1px;
 }
 
 .checkbox:checked {
@@ -115,36 +112,10 @@ export default {
 }
 
 .round-left {
-  border-radius: 0.4rem 0 0 0.4rem;
+  border-radius: 0.2rem 0 0 0.2rem;
 }
 
 .round-right {
-  border-radius: 0 0.4rem 0.4rem 0;
-}
-
-.list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around;
-}
-
-.list li {
-  margin: 0;
-  color: white;
-  opacity: 0.87;
-  width: 3rem;
-  text-align: center;
-}
-
-.list h2 {
-  margin: 0;
-}
-
-.list li h4 {
-  margin: 0.6rem 0 0.3rem 0;
-  opacity: 0.6;
+  border-radius: 0 0.2rem 0.2rem 0;
 }
 </style>
