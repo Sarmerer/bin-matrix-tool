@@ -2,6 +2,10 @@
   <div class="wrapper">
     <context-menu ref="contextMenu" v-on:close-event="selectedComponent = null">
       <template #items>
+        <h4
+          class="header"
+          v-text="selectedComponent ? selectedComponent.value : '0x00'"
+        ></h4>
         <button class="item" @click="contextCopyHandler('hex')">
           Copy hex
         </button>
@@ -66,18 +70,28 @@
           ></component>
         </div>
       </div>
-      <div class="sidebar">
-        <div
-          class="preview-item"
-          v-for="component in components"
-          :key="`preview#${component.id}`"
-          @mouseover="component.hovered = true"
-          @mouseleave="component.hovered = false"
-          @click="highlight(component.id)"
-        >
-          {{ component.value ? `0x${component.value}` : "00" }}
+      <aside class="sidebar">
+        <header></header>
+        <div class="content">
+          {
+          <div
+            class="preview-item"
+            v-for="(component, index) in components"
+            :key="`preview#${component.id}`"
+          >
+            <span
+              v-text="component.value ? component.value : '00'"
+              class="preview-item-content"
+              :class="{ highlighted: lastUpdated === component.id }"
+              @mouseover="component.hovered = true"
+              @mouseleave="component.hovered = false"
+              @click="highlight(component.id)"
+            ></span>
+            <span v-if="index < components.length - 1">, </span>
+          </div>
+          }
         </div>
-      </div>
+      </aside>
     </div>
   </div>
 </template>
@@ -92,28 +106,10 @@ export default {
     ContextMenu,
     BitRow,
   },
-  computed: {
-    sortedComponents() {
-      let clone = [...this.components];
-      let result;
-      switch (this.layout) {
-        case "default":
-          result = this.defaultLayoutSort(clone);
-          break;
-        case "stack":
-          result = this.stackLayoutSort(clone);
-          break;
-        case "sequence":
-          result = this.defaultLayoutSort(clone);
-          break;
-      }
-      return result;
-    },
-  },
   beforeMount() {
     window.addEventListener("beforeunload", this.save);
     this.storeData = store.load();
-    this.addConverters(this.storeData.length, this.storeData);
+    this.addConverters(this.storeData?.length || 1, this.storeData);
   },
   data() {
     return {
@@ -122,6 +118,7 @@ export default {
       layout: "default",
       components: [],
       selectedComponent: null,
+      lastUpdated: 0,
     };
   },
 
@@ -134,7 +131,7 @@ export default {
           : 0;
 
         let id = lastID + 1;
-        let value = values && values[i] ? values[i] : "0";
+        let value = values && values[i] ? values[i] : "0x00";
 
         let component = {
           id: id,
@@ -151,6 +148,7 @@ export default {
     },
     updateValue(component, newValue) {
       component.value = newValue;
+      this.lastUpdated = component.id;
     },
     clearAll() {
       this.components.forEach((c) => (c.value = "0"));
@@ -173,10 +171,21 @@ export default {
 
     contextMenuHandler(event, clickedComponent) {
       this.selectedComponent = clickedComponent;
-      this.$refs.contextMenu.open(event);
+      this.$refs?.contextMenu?.open(event);
     },
-    contextCopyHandler() {
-      this.$copyText(this.selectedComponent.value);
+    contextCopyHandler(base) {
+      switch (base) {
+        case "bin":
+          this.$copyText(
+            Number.parseInt(this.selectedComponent?.value || "0x00", 16)
+              .toString(2)
+              .padStart(8, "0") || "00000000"
+          );
+          break;
+        default:
+          this.$copyText(this.selectedComponent?.value || "0x00");
+          break;
+      }
     },
     contextClearHandler() {
       this.selectedComponent.value = "0";
@@ -195,16 +204,14 @@ export default {
     },
     isRightAligned(id) {
       if (this.layout === "stack") {
-        let median = Math.ceil(this.components.length * 0.5);
+        let median = Math.ceil(this.components.length / 2);
         return id > median;
       } else if (this.layout === "sequence") {
         return id % 2 == false;
       }
     },
     selectedIsEmpty() {
-      return this.selectedComponent && this.selectedComponent.value != 0
-        ? false
-        : true;
+      return this.selectedComponent?.value != 0 ? false : true;
     },
     highlight(id) {
       const el = this.$refs[`input#${id}`][0]?.$el;
@@ -246,7 +253,7 @@ export default {
   padding: 0.5rem 0.4rem 0.5rem 0.4rem;
   background-color: var(--secondary);
   border-radius: 0.4rem;
-  box-shadow: 0.1rem 0.1rem 0.2rem 0px black;
+  /* box-shadow: 0.1rem 0.1rem 0.2rem 0px black; */
 }
 
 .inputs .input-item {
@@ -258,27 +265,40 @@ export default {
   flex: 1 1 20%;
   max-width: 20%;
 
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 0.5rem;
   padding: 0.5rem;
   overflow-y: auto;
   max-height: calc(100vh - 1.5rem);
+  border-radius: 0.2rem;
   background-color: var(--secondary);
+}
+
+.sidebar > .content {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.2rem;
 }
 
 .sidebar .preview-item {
   height: fit-content;
   width: fit-content;
-  border-radius: 0.2rem;
-  padding: 0.1rem;
   margin: 0;
 }
 
-.sidebar .preview-item:hover {
+.sidebar .preview-item > .preview-item-content {
+  padding: 0 0.2rem;
+  border-radius: 0.2rem;
+  margin: 0;
+}
+
+.sidebar .preview-item-content:hover {
   background-color: #faed27;
   color: var(--bg-color);
+}
+
+.sidebar .preview-item > .highlighted:not(:hover) {
+  background-color: #ffa500;
+  color: black;
 }
 
 .inputs .row-hover {

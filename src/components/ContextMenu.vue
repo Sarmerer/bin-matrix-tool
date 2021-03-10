@@ -1,5 +1,6 @@
 <template>
   <div
+    ref="contextMenu"
     v-show="show"
     class="context-menu"
     :style="style"
@@ -19,19 +20,38 @@ export default {
   computed: {
     style() {
       return { top: `${this.top}px`, left: `${this.left}px` };
-    },
+    }
   },
   data() {
     return {
       top: 0,
       left: 0,
-      show: false,
+      show: false
     };
   },
   methods: {
     open(event) {
-      this.top = event.pageY || event.clientY;
-      this.left = event.pageX || event.clientX;
+      let eventY = event.pageY || event.clientY;
+      let eventX = event.pageX || event.clientX;
+      let menuHeight = this.$refs?.contextMenu?.clientHeight || 170;
+      let menuWidth = this.$refs?.contextMenu?.clientWidth || 0;
+      let newY = eventY;
+      let menuBottom = newY + menuHeight;
+
+      let newX = eventX;
+      let menuRight = newX + menuWidth;
+
+      if (Math.max(menuBottom, window.innerHeight) === menuBottom) {
+        newY -= menuHeight;
+      }
+
+      if (Math.max(menuRight, window.innerWidth * 0.5) === menuRight) {
+        newX -= menuWidth;
+      }
+
+      this.top = newY;
+      this.left = newX;
+
       Vue.nextTick(() => this.$el.focus());
       this.show = true;
     },
@@ -40,8 +60,8 @@ export default {
       this.$emit("close-event");
       this.left = 0;
       this.top = 0;
-    },
-  },
+    }
+  }
 };
 </script>
 <style scoped>
@@ -77,6 +97,11 @@ export default {
 
 .context-menu > .item:disabled {
   opacity: 0.2;
+}
+
+.context-menu > .header {
+  margin: 0;
+  padding: 0;
 }
 
 hr {

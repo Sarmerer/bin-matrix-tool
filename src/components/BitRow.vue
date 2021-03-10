@@ -1,16 +1,11 @@
 <template>
   <div>
-    <p
-      v-if="!rightAligned"
-      style="margin:0 0.1rem 0 0; width: 1rem; display: inline-block;"
-    >
-      {{ index }}
-    </p>
+    <p v-if="!rightAligned" class="row-index" v-text="index"></p>
     <input
       class="checkbox"
       :class="{
         'round-left': index === 0,
-        'round-right': index === 7,
+        'round-right': index === 7
       }"
       v-for="(input, index) in binInput"
       :key="index"
@@ -20,12 +15,7 @@
     <!-- <h4 style="margin: 0; display: inline-block; width: 2rem;">
       0x{{ result }}
     </h4> -->
-    <p
-      v-if="rightAligned"
-      style="margin:0 0 0 0.1rem; width: 1rem; display: inline-block;"
-    >
-      {{ index }}
-    </p>
+    <p v-if="rightAligned" class="row-index" v-text="index"></p>
   </div>
 </template>
 
@@ -35,21 +25,22 @@ export default {
   props: {
     index: { type: Number, default: 0, required: true },
     value: { type: String, default: "0" },
-    rightAligned: { type: Boolean, default: false },
+    rightAligned: { type: Boolean, default: false }
   },
   watch: {
     result: function(newValue) {
       this.$emit("value-change", newValue || "0");
-    },
+    }
   },
   computed: {
     result() {
-      let input = this.binInput.map((bi) => (bi.value ? "1" : "0")).join("");
+      let input = this.binInput.map(bi => (bi.value ? "1" : "0")).join("");
       let hex = parseInt(input, 2)
         .toString(16)
         .toUpperCase();
-      return hex;
-    },
+      if (hex.length === 1) hex = `0${hex}`;
+      return `0x${hex}`;
+    }
   },
   beforeMount() {
     let bin = this.hexToBin(this.value);
@@ -65,21 +56,21 @@ export default {
         { value: false },
         { value: false },
         { value: false },
-        { value: false },
-      ],
+        { value: false }
+      ]
     };
   },
   methods: {
     hexToBin(n) {
-      if (!this.isValidHex(n)) n = "0";
-      return parseInt(n, 16)
+      if (!this.isValidHex(n)) n = "0x00";
+      return Number.parseInt(n, 16)
         .toString(2)
         .padStart(8, "0");
     },
     isValidHex(hex) {
-      return typeof hex === "string" && !isNaN(Number("0x" + hex));
-    },
-  },
+      return typeof hex === "string" && !isNaN(Number.parseInt(`0x${hex}`, 16));
+    }
+  }
 };
 </script>
 <style scoped>
@@ -117,5 +108,11 @@ export default {
 
 .round-right {
   border-radius: 0 0.2rem 0.2rem 0;
+}
+
+.row-index {
+  margin: 0 0 0 0.1rem;
+  width: 1rem;
+  display: inline-block;
 }
 </style>
