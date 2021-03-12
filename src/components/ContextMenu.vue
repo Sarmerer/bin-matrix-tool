@@ -20,13 +20,13 @@ export default {
   computed: {
     style() {
       return { top: `${this.top}px`, left: `${this.left}px` };
-    }
+    },
   },
   data() {
     return {
       top: 0,
       left: 0,
-      show: false
+      show: false,
     };
   },
   methods: {
@@ -60,8 +60,8 @@ export default {
       this.$emit("close-event");
       this.left = 0;
       this.top = 0;
-    }
-  }
+    },
+  },
 };
 </script>
 <style scoped>
@@ -82,7 +82,7 @@ export default {
 
 .context-menu > .item {
   transition: background-color 0.2s linear;
-  background-color: #3a3b3c;
+  background-color: var(--context-menu-bg-clr);
   color: rgba(255, 255, 255, 0.87);
   text-align: start;
   padding: 0.6rem 3rem 0.4rem 0.5rem;
@@ -92,7 +92,7 @@ export default {
 }
 
 .context-menu > .item:hover:enabled {
-  background-color: #545556;
+  background-color: var(--context-menu-item-hover-clr);
 }
 
 .context-menu > .item:disabled {
@@ -109,7 +109,7 @@ hr {
   width: 70%;
   border: none;
   height: 1px;
-  background-color: var(--secondary);
-  color: var(--secondary);
+  background-color: var(--hr-clr);
+  color: var(--hr-clr);
 }
 </style>

@@ -1,21 +1,20 @@
 <template>
   <div>
-    <p v-if="!rightAligned" class="row-index" v-text="index"></p>
+    <span v-if="!rightAligned" class="row-index" v-text="index"></span>
     <input
       class="checkbox"
       :class="{
         'round-left': index === 0,
-        'round-right': index === 7
+        'round-right': index === 7,
       }"
       v-for="(input, index) in binInput"
       :key="index"
+      @mousedown.prevent="mouseover($event, input)"
+      @mouseover="mouseover($event, input)"
       type="checkbox"
       v-model="input.value"
     />
-    <!-- <h4 style="margin: 0; display: inline-block; width: 2rem;">
-      0x{{ result }}
-    </h4> -->
-    <p v-if="rightAligned" class="row-index" v-text="index"></p>
+    <span v-if="rightAligned" class="row-index" v-text="index"></span>
   </div>
 </template>
 
@@ -25,22 +24,22 @@ export default {
   props: {
     index: { type: Number, default: 0, required: true },
     value: { type: String, default: "0" },
-    rightAligned: { type: Boolean, default: false }
+    rightAligned: { type: Boolean, default: false },
   },
   watch: {
     result: function(newValue) {
       this.$emit("value-change", newValue || "0");
-    }
+    },
   },
   computed: {
     result() {
-      let input = this.binInput.map(bi => (bi.value ? "1" : "0")).join("");
+      let input = this.binInput.map((bi) => (bi.value ? "1" : "0")).join("");
       let hex = parseInt(input, 2)
         .toString(16)
         .toUpperCase();
       if (hex.length === 1) hex = `0${hex}`;
       return `0x${hex}`;
-    }
+    },
   },
   beforeMount() {
     let bin = this.hexToBin(this.value);
@@ -56,8 +55,8 @@ export default {
         { value: false },
         { value: false },
         { value: false },
-        { value: false }
-      ]
+        { value: false },
+      ],
     };
   },
   methods: {
@@ -69,8 +68,11 @@ export default {
     },
     isValidHex(hex) {
       return typeof hex === "string" && !isNaN(Number.parseInt(`0x${hex}`, 16));
-    }
-  }
+    },
+    async mouseover(e, box) {
+      if (e.which === 1) box.value = !e.altKey;
+    },
+  },
 };
 </script>
 <style scoped>
@@ -86,16 +88,15 @@ export default {
 
 .checkbox {
   -webkit-appearance: none;
-  background-color: var(--bg-color);
+  background-color: var(--inputs-bg-secondary-clr);
   border: 1px solid transparent;
   padding: 0.4rem 0.7rem 0.4rem 0.7rem;
   margin: 2px;
   outline: none;
 }
 
-.checkbox:active,
-.checkbox:checked:active {
-  border: #43b581 solid 1px;
+.checkbox:hover {
+  border: #43b58284 solid 1px;
 }
 
 .checkbox:checked {
@@ -110,9 +111,17 @@ export default {
   border-radius: 0 0.2rem 0.2rem 0;
 }
 
+.ml {
+  margin-left: 0.5rem;
+}
+
+.mr {
+  margin-right: 0.5rem;
+}
+
 .row-index {
-  margin: 0 0 0 0.1rem;
-  width: 1rem;
+  margin: 0;
+  width: 1.5rem;
   display: inline-block;
 }
 </style>

@@ -58,7 +58,11 @@
             v-for="(component, index) in components"
             :key="`input#${component.id}#${component.value}`"
             class="input-item"
-            :class="{ 'row-hover': component.hovered }"
+            :class="{
+              'row-hover': component.hovered,
+              mr: !isRightAligned(component.id) && layout === 'default',
+              ml: isRightAligned(component.id) && layout === 'default',
+            }"
             :index="component.id"
             :rightAligned="isRightAligned(component.id)"
             :value="component.value"
@@ -71,9 +75,12 @@
         </div>
       </div>
       <aside class="sidebar">
-        <header></header>
+        <!-- <header>
+          <button>o</button>
+          <button>-</button>
+          <button>x</button>
+        </header> -->
         <div class="content">
-          {
           <div
             class="preview-item"
             v-for="(component, index) in components"
@@ -89,7 +96,6 @@
             ></span>
             <span v-if="index < components.length - 1">, </span>
           </div>
-          }
         </div>
       </aside>
     </div>
@@ -151,13 +157,13 @@ export default {
       this.lastUpdated = component.id;
     },
     clearAll() {
-      this.components.forEach((c) => (c.value = "0"));
+      this.components.forEach((c) => (c.value = "0x00"));
     },
     deleteAll() {
       this.components = [
         {
           id: 1,
-          value: "0",
+          value: "0x00",
           hovered: false,
           component: BitRow,
         },
@@ -232,8 +238,10 @@ export default {
   flex-wrap: wrap;
 }
 
-.header {
+.wrapper > .header {
   height: 1.5rem;
+  box-shadow: 1px 1px 1px #202020;
+  position: relative;
 }
 
 .inputs {
@@ -244,14 +252,22 @@ export default {
   flex-wrap: wrap;
   justify-content: center;
   overflow-y: auto;
-  max-height: calc(100vh - 1.5rem);
+  max-height: calc(100vh - 5rem);
+  padding: 1rem 0;
+
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 .table {
   width: fit-content;
   display: grid;
-  padding: 0.5rem 0.4rem 0.5rem 0.4rem;
-  background-color: var(--secondary);
+  padding: 0.5rem 0;
+  background-color: var(--inputs-bg-clr);
   border-radius: 0.4rem;
   /* box-shadow: 0.1rem 0.1rem 0.2rem 0px black; */
 }
@@ -263,20 +279,32 @@ export default {
 
 .sidebar {
   flex: 1 1 20%;
-  max-width: 20%;
+  max-width: 30%;
 
-  padding: 0.5rem;
-  overflow-y: auto;
-  max-height: calc(100vh - 1.5rem);
+  position: relative;
+  height: calc(100vh - 3rem);
   border-radius: 0.2rem;
-  background-color: var(--secondary);
+  background-color: #21252b; /* var(--sidebar-bg-clr) */
+}
+
+.sidebar > header {
+  position: sticky;
+
+  height: 1.5rem;
+  background-color: var(--sidebar-bg-clr);
+  box-shadow: 1px 1px 1px #202020;
 }
 
 .sidebar > .content {
+  overflow-y: auto;
+
+  padding: 0.5rem;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   gap: 0.2rem;
+  overflow: auto;
+  max-height: calc(100vh - 4rem);
 }
 
 .sidebar .preview-item {
@@ -293,7 +321,7 @@ export default {
 
 .sidebar .preview-item-content:hover {
   background-color: #faed27;
-  color: var(--bg-color);
+  color: var(--body-bg-clr);
 }
 
 .sidebar .preview-item > .highlighted:not(:hover) {
