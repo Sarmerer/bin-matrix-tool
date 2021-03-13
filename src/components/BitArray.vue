@@ -1,5 +1,5 @@
 <template>
-  <div class="wrapper">
+  <div>
     <context-menu ref="contextMenu" v-on:close-event="selectedComponent = null">
       <template #items>
         <h4
@@ -23,7 +23,7 @@
         <button class="item" @click="contextDeleteHandler">Delete</button>
       </template>
     </context-menu>
-    <div class="header">
+    <!-- <div class="header">
       <button @click="addConverters(Number.parseInt(addAmount) || 1)">
         Add
       </button>
@@ -39,7 +39,7 @@
         <option>stack</option>
         <option>sequence</option>
       </select>
-    </div>
+    </div> -->
     <div class="container">
       <div class="inputs">
         <div
@@ -83,13 +83,19 @@
         <div class="content">
           <div
             class="preview-item"
+            :class="{
+              dimmed:
+                component.value === '0x00' && lastUpdated !== component.id,
+            }"
             v-for="(component, index) in components"
             :key="`preview#${component.id}`"
           >
             <span
               v-text="component.value ? component.value : '00'"
               class="preview-item-content"
-              :class="{ highlighted: lastUpdated === component.id }"
+              :class="{
+                highlighted: lastUpdated === component.id,
+              }"
               @mouseover="component.hovered = true"
               @mouseleave="component.hovered = false"
               @click="highlight(component.id)"
@@ -229,16 +235,13 @@ export default {
 };
 </script>
 <style scoped>
-.wrapper {
-  height: 100%;
-}
-
 .container {
   display: flex;
   flex-wrap: wrap;
+  flex-direction: row;
 }
 
-.wrapper > .header {
+.header {
   height: 1.5rem;
   box-shadow: 1px 1px 1px #202020;
   position: relative;
@@ -246,14 +249,12 @@ export default {
 
 .inputs {
   flex: 1 1 auto;
-  height: fit-content;
 
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   overflow-y: auto;
-  max-height: calc(100vh - 5rem);
-  padding: 1rem 0;
+  max-height: var(--max-height);
 
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -269,6 +270,7 @@ export default {
   padding: 0.5rem 0;
   background-color: var(--inputs-bg-clr);
   border-radius: 0.4rem;
+  margin: 1rem 0;
   /* box-shadow: 0.1rem 0.1rem 0.2rem 0px black; */
 }
 
@@ -280,10 +282,9 @@ export default {
 .sidebar {
   flex: 1 1 20%;
   max-width: 30%;
+  overflow-y: auto;
+  max-height: var(--max-height);
 
-  position: relative;
-  height: calc(100vh - 3rem);
-  border-radius: 0.2rem;
   background-color: #21252b; /* var(--sidebar-bg-clr) */
 }
 
@@ -292,7 +293,7 @@ export default {
 
   height: 1.5rem;
   background-color: var(--sidebar-bg-clr);
-  box-shadow: 1px 1px 1px #202020;
+  /* box-shadow: 1px 1px 1px #202020; */
 }
 
 .sidebar > .content {
@@ -304,7 +305,6 @@ export default {
   flex-wrap: wrap;
   gap: 0.2rem;
   overflow: auto;
-  max-height: calc(100vh - 4rem);
 }
 
 .sidebar .preview-item {
@@ -327,6 +327,11 @@ export default {
 .sidebar .preview-item > .highlighted:not(:hover) {
   background-color: #ffa500;
   color: black;
+}
+
+.sidebar .preview-item.dimmed:not(:hover) {
+  color: grey;
+  opacity: 0.4;
 }
 
 .inputs .row-hover {

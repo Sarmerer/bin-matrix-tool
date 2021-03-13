@@ -1,55 +1,19 @@
 <template>
   <div id="app">
-    <div id="title-bar">
-      <div id="title">bit-matrix-tool</div>
-      <div id="title-bar-buttons">
-        <button id="pin-button" @click="setAlwaysOnTop">
-          <img v-if="!isOnTop" src="@/assets/icons/push_pin.svg" alt="." />
-          <img v-else src="@/assets/icons/push_pin_fill.svg" alt="." />
-        </button>
-        <button id="minimize-button" @click="minimize">
-          <img src="@/assets/icons/dash.svg" alt="-" />
-        </button>
-        <button id="maximize-button" @click="maximize">
-          <img src="@/assets/icons/square.svg" alt="+" />
-        </button>
-        <button id="close-button" @click="close">
-          <img src="@/assets/icons/clear.svg" alt="x" />
-        </button>
-      </div>
-    </div>
-    <bit-array></bit-array>
+    <title-bar id="title-bar"></title-bar>
+    <bit-array id="main"></bit-array>
   </div>
 </template>
 
 <script>
+import TitleBar from "@/components/TitleBar";
 import BitArray from "@/components/BitArray";
-const win = require("@electron/remote").getCurrentWindow();
 
 export default {
   name: "App",
   components: {
+    TitleBar,
     BitArray,
-  },
-  data() {
-    return { isOnTop: false };
-  },
-  methods: {
-    setAlwaysOnTop() {
-      let value = !win.isAlwaysOnTop();
-      this.isOnTop = value;
-      win.setAlwaysOnTop(value);
-    },
-    minimize() {
-      win.minimize();
-    },
-    maximize() {
-      console.log(win.isMaximized());
-      win.isMaximized() ? win.unmaximize() : win.maximize();
-    },
-    close() {
-      win.close();
-    },
   },
 };
 </script>
@@ -65,12 +29,15 @@ export default {
   --context-menu-item-hover-clr: #545556;
 
   --hr-clr: #848585;
+
+  --max-height: calc(100vh - 1.5rem);
 }
 
 html,
 body {
   margin: 0;
   padding: 0;
+  height: 100%;
   background-color: var(--body-bg-clr);
   color: #ffffffde;
   font-family: "Roboto", sans-serif;
@@ -81,6 +48,10 @@ body {
 #app {
   text-align: center;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  /* display: grid; */
 }
 
 #title-bar {
@@ -89,41 +60,14 @@ body {
   background-color: #202225;
   padding: none;
   margin: 0px;
+  flex: none;
 }
 
-#title {
-  position: fixed;
-  top: 2px;
-  left: 6px;
-}
-
-#title-bar-buttons {
-  -webkit-app-region: no-drag;
-  position: fixed;
-  top: 0;
-  right: 0;
-  height: 1.5rem;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-#title-bar-buttons > button {
-  outline: none;
-  border: none;
-  height: 1.5rem;
-  width: 1.5rem;
-  cursor: pointer;
-  text-align: center;
-  vertical-align: middle;
-  color: rgba(255, 255, 255, 0.7);
-  background-color: #202225;
-}
-
-#title-bar-buttons > button:not(#close-button):hover {
-  background-color: var(--body-bg-clr);
-}
-
-#close-button:hover {
-  background-color: #f04747;
+#main {
+  height: var(--max-height);
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
 }
 
 ::-webkit-scrollbar {
