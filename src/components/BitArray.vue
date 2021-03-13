@@ -40,8 +40,8 @@
         <option>sequence</option>
       </select>
     </div> -->
-    <div class="container">
-      <div class="inputs">
+    <div class="flex flex-wrap">
+      <div class="flex-auto bg-blue-400">
         <div
           class=" table"
           :style="{
@@ -74,13 +74,13 @@
           ></component>
         </div>
       </div>
-      <aside class="sidebar">
+      <aside class="flex-2 bg-purple-400 max-w-1/5">
         <!-- <header>
           <button>o</button>
           <button>-</button>
           <button>x</button>
         </header> -->
-        <div class="content">
+        <div class="flex flex-wrap flex-row gap-1">
           <div
             class="preview-item"
             :class="{
@@ -108,8 +108,8 @@
   </div>
 </template>
 <script>
-import BitRow from "@/components/BitRow.vue";
 import store from "@/store/store";
+import BitRow from "@/components/BitRow.vue";
 import ContextMenu from "@/components/ContextMenu.vue";
 
 export default {
@@ -235,7 +235,7 @@ export default {
 };
 </script>
 <style scoped>
-.container {
+/* .container {
   display: flex;
   flex-wrap: wrap;
   flex-direction: row;
@@ -271,7 +271,7 @@ export default {
   background-color: var(--inputs-bg-clr);
   border-radius: 0.4rem;
   margin: 1rem 0;
-  /* box-shadow: 0.1rem 0.1rem 0.2rem 0px black; */
+
 }
 
 .inputs .input-item {
@@ -285,7 +285,7 @@ export default {
   overflow-y: auto;
   max-height: var(--max-height);
 
-  background-color: #21252b; /* var(--sidebar-bg-clr) */
+  background-color:  var(--sidebar-bg-clr);
 }
 
 .sidebar > header {
@@ -293,7 +293,6 @@ export default {
 
   height: 1.5rem;
   background-color: var(--sidebar-bg-clr);
-  /* box-shadow: 1px 1px 1px #202020; */
 }
 
 .sidebar > .content {
@@ -336,5 +335,5 @@ export default {
 
 .inputs .row-hover {
   box-shadow: inset 0 0 0 2px #faed27;
-}
+} */
 </style>

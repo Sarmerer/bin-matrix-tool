@@ -1,25 +1,20 @@
 <template>
   <div>
-    <!-- <div id="title">
-        <img src="@/assets/icons/logo.svg" alt="bit-matrix-tool" />
-      </div> -->
-    <div id="app-control-buttons">
-      <!-- <button>Add row</button>
-        <button>Clear all</button>
-        <button>Delete all</button> -->
-    </div>
-    <div id="window-control-buttons">
-      <button id="pin-button" @click="setAlwaysOnTop">
+    <div
+      class="fixed top-0 right-0 cursor-pointer"
+      style="-webkit-app-region: no-drag;"
+    >
+      <button class="w-6 h6" @click="setAlwaysOnTop">
         <img v-if="!isOnTop" src="@/assets/icons/push_pin.svg" alt="." />
         <img v-else src="@/assets/icons/push_pin_fill.svg" alt="." />
       </button>
-      <button id="minimize-button" @click="minimize">
+      <button class="w-6" @click="minimize">
         <img src="@/assets/icons/dash.svg" alt="-" />
       </button>
-      <button id="maximize-button" @click="maximize">
+      <button class="w-6" @click="maximize">
         <img src="@/assets/icons/square.svg" alt="+" />
       </button>
-      <button id="close-button" @click="close">
+      <button class="w-6" @click="close">
         <img src="@/assets/icons/clear.svg" alt="x" />
       </button>
     </div>
@@ -52,11 +47,11 @@ export default {
 };
 </script>
 <style scoped>
-/* #title {
+/*#title {
   position: fixed;
   top: 0;
   left: 0;
-} */
+}
 
 #app-control-buttons {
   -webkit-app-region: no-drag;
@@ -107,5 +102,5 @@ export default {
 
 #close-button:hover {
   background-color: #f04747;
-}
+} */
 </style>
