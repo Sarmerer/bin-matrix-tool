@@ -3,43 +3,28 @@
     <context-menu ref="contextMenu" v-on:close-event="selectedComponent = null">
       <template #items>
         <h4
-          class="header"
+          class="context-menu-header"
           v-text="selectedComponent ? selectedComponent.value : '0x00'"
         ></h4>
-        <button class="item" @click="contextCopyHandler('hex')">
+        <button class="context-menu-item" @click="contextCopyHandler('hex')">
           Copy hex
         </button>
-        <button class="item" @click="contextCopyHandler('bin')">
+        <button class="context-menu-item" @click="contextCopyHandler('bin')">
           Copy bin
         </button>
         <hr />
         <button
-          class="item"
+          class="context-menu-item"
           @click="contextClearHandler"
           :disabled="selectedIsEmpty()"
         >
-          Clear
+          Clear row
         </button>
-        <button class="item" @click="contextDeleteHandler">Delete</button>
+        <button class="context-menu-item" @click="contextDeleteHandler">
+          Delete row
+        </button>
       </template>
     </context-menu>
-    <!-- <div class="header">
-      <button @click="addConverters(Number.parseInt(addAmount) || 1)">
-        Add
-      </button>
-      <input type="number" v-model="addAmount" />
-      <button @click="clearAll">
-        Clear
-      </button>
-      <button @click="deleteAll">
-        Delete
-      </button>
-      <select v-model="layout">
-        <option>default</option>
-        <option>stack</option>
-        <option>sequence</option>
-      </select>
-    </div> -->
     <div class="container">
       <div class="inputs">
         <div
@@ -60,7 +45,9 @@
             class="input-item"
             :class="{
               'row-hover': component.hovered,
-              mr: !isRightAligned(component.id) && layout === 'default',
+              mr:
+                (!isRightAligned(component.id) && layout === 'default') ||
+                components.length < 2,
               ml: isRightAligned(component.id) && layout === 'default',
             }"
             :index="component.id"
@@ -75,11 +62,6 @@
         </div>
       </div>
       <aside class="sidebar">
-        <!-- <header>
-          <button>o</button>
-          <button>-</button>
-          <button>x</button>
-        </header> -->
         <div class="content">
           <div
             class="preview-item"
@@ -111,17 +93,13 @@
 import BitRow from "@/components/BitRow.vue";
 import store from "@/store/store";
 import ContextMenu from "@/components/ContextMenu.vue";
+import { bus } from "@/event-bus";
 
 export default {
   name: "BitArray",
   components: {
     ContextMenu,
     BitRow,
-  },
-  beforeMount() {
-    window.addEventListener("beforeunload", this.save);
-    this.storeData = store.load();
-    this.addConverters(this.storeData?.length || 1, this.storeData);
   },
   data() {
     return {
@@ -133,7 +111,22 @@ export default {
       lastUpdated: 0,
     };
   },
+  created() {
+    this.storeData = store.load();
+    this.addConverters(this.storeData?.length || 1, this.storeData);
 
+    window.addEventListener("beforeunload", this.save);
+    bus.$on("add-row", (args) =>
+      this.addConverters(args && args[0] ? args[0] : 1)
+    );
+    bus.$on("clear-all", () => this.clearAll());
+    bus.$on("delete-all", () => this.deleteAll());
+
+    bus.$on(
+      "change-layout",
+      (args) => (this.layout = args && args[0] ? args[0] : "default")
+    );
+  },
   methods: {
     addConverters(amount, values) {
       if (!amount) amount = 1;
@@ -166,14 +159,9 @@ export default {
       this.components.forEach((c) => (c.value = "0x00"));
     },
     deleteAll() {
-      this.components = [
-        {
-          id: 1,
-          value: "0x00",
-          hovered: false,
-          component: BitRow,
-        },
-      ];
+      this.components = [];
+      let amount = this.layout === "default" ? 1 : 2;
+      this.addConverters(amount);
     },
     save() {
       let saveData = this.components.map((c) => c.value);
@@ -239,6 +227,15 @@ export default {
   display: flex;
   flex-wrap: wrap;
   flex-direction: row;
+  height: 100%;
+  width: 100%;
+
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 .header {
@@ -254,14 +251,8 @@ export default {
   flex-wrap: wrap;
   justify-content: center;
   overflow-y: auto;
+  height: fit-content;
   max-height: var(--max-height);
-
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
 }
 
 .table {
@@ -283,7 +274,7 @@ export default {
   flex: 1 1 20%;
   max-width: 30%;
   overflow-y: auto;
-  max-height: var(--max-height);
+  height: var(--max-height);
 
   background-color: #21252b; /* var(--sidebar-bg-clr) */
 }
@@ -308,6 +299,7 @@ export default {
 }
 
 .sidebar .preview-item {
+  color: var(--text-secondary);
   height: fit-content;
   width: fit-content;
   margin: 0;

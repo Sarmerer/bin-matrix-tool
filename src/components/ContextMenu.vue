@@ -1,7 +1,7 @@
 <template>
   <div
     ref="contextMenu"
-    v-show="show"
+    v-show="shown"
     class="context-menu"
     :style="style"
     tabindex="0"
@@ -13,7 +13,7 @@
 </template>
 <script>
 import Vue from "vue";
-import { mixin as clickaway } from "vue-clickaway";
+import { mixin as clickaway } from "vue-clickaway2";
 
 export default {
   mixins: [clickaway],
@@ -26,7 +26,7 @@ export default {
     return {
       top: 0,
       left: 0,
-      show: false,
+      shown: false,
     };
   },
   methods: {
@@ -53,10 +53,11 @@ export default {
       this.left = newX;
 
       Vue.nextTick(() => this.$el.focus());
-      this.show = true;
+      this.shown = true;
     },
     close() {
-      this.show = false;
+      if (!this.shown) return;
+      this.shown = false;
       this.$emit("close-event");
       this.left = 0;
       this.top = 0;
@@ -77,10 +78,10 @@ export default {
   width: auto;
   height: auto;
   border-radius: 0.2rem;
-  background-color: #3a3b3c;
+  background-color: var(--context-menu-bg-clr);
 }
 
-.context-menu > .item {
+.context-menu > .context-menu-item {
   transition: background-color 0.2s linear;
   background-color: var(--context-menu-bg-clr);
   color: rgba(255, 255, 255, 0.87);
@@ -91,15 +92,15 @@ export default {
   outline: none;
 }
 
-.context-menu > .item:hover:enabled {
+.context-menu > .context-menu-item:hover:enabled {
   background-color: var(--context-menu-item-hover-clr);
 }
 
-.context-menu > .item:disabled {
+.context-menu > .context-menu-item:disabled {
   opacity: 0.2;
 }
 
-.context-menu > .header {
+.context-menu > .context-menu-header {
   margin: 0;
   padding: 0;
 }

@@ -15,6 +15,9 @@ export default {
     TitleBar,
     BitArray,
   },
+  beforeDestroy() {
+    window.removeEventListener("keydown");
+  },
 };
 </script>
 <style>
@@ -25,12 +28,15 @@ export default {
   --inputs-bg-clr: #353b45;
   --inputs-bg-secondary-clr: #282c34;
   --sidebar-bg-clr: #282c34;
-  --context-menu-bg-clr: #3a3b3c;
-  --context-menu-item-hover-clr: #545556;
+  --context-menu-bg-clr: #353b45;
+  --context-menu-item-hover-clr: #2c313a;
 
-  --hr-clr: #848585;
+  --hr-clr: #6e6b74;
 
   --max-height: calc(100vh - 1.5rem);
+
+  --text-primary: rgba(255, 255, 255, 0.6);
+  --text-secondary: rgba(255, 255, 255, 0.87);
 }
 
 html,
@@ -39,7 +45,7 @@ body {
   padding: 0;
   height: 100%;
   background-color: var(--body-bg-clr);
-  color: #ffffffde;
+  color: var(--text-primary);
   font-family: "Roboto", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -58,13 +64,14 @@ body {
   -webkit-app-region: drag;
   height: 1.5rem;
   background-color: #202225;
-  padding: none;
+  padding: 0;
   margin: 0px;
   flex: none;
+  user-select: none;
 }
 
 #main {
-  height: var(--max-height);
+  height: 100%;
   display: flex;
   flex-wrap: wrap;
   flex-direction: row;

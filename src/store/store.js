@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-const settingsFilePath = "./src/store";
+const settingsFilePath = "./";
 const settingsFileName = "settings.json";
 const settingsFile = path.join(settingsFilePath, settingsFileName);
 
@@ -13,7 +13,7 @@ export default {
   },
   load() {
     this.createSettingsFile();
-    this.settings = this.loadSettings();
+    //this.settings = this.loadSettings();
     this.data = JSON.parse(localStorage.getItem("data"));
     return this.data;
   },
