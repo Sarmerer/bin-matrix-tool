@@ -31,12 +31,14 @@
           class=" table"
           :style="{
             'grid-template-columns':
-              layout !== 'default' && components.length > 1
+              layout !== layouts.default && components.length > 1
                 ? '50% 50%'
                 : '100%',
             'grid-template-rows':
-              layout === 'stack' ? gridRowsTemplate(components.length) : '',
-            'grid-auto-flow': layout === 'stack' ? 'column' : 'row',
+              layout === layouts.columns
+                ? gridRowsTemplate(components.length)
+                : '',
+            'grid-auto-flow': layout === layouts.columns ? 'column' : 'row',
           }"
         >
           <component
@@ -46,9 +48,9 @@
             :class="{
               'row-hover': component.hovered,
               mr:
-                (!isRightAligned(component.id) && layout === 'default') ||
+                (!isRightAligned(component.id) && layout === layouts.default) ||
                 components.length < 2,
-              ml: isRightAligned(component.id) && layout === 'default',
+              ml: isRightAligned(component.id) && layout === layouts.default,
             }"
             :index="component.id"
             :rightAligned="isRightAligned(component.id)"
@@ -91,9 +93,9 @@
 </template>
 <script>
 import BitRow from "@/components/BitRow.vue";
-import store from "@/store/store";
+import { storeData, saveStore } from "@/store/store";
 import ContextMenu from "@/components/ContextMenu.vue";
-import { bus } from "@/event-bus";
+import { bus, events } from "@/event-bus";
 
 export default {
   name: "BitArray",
@@ -104,27 +106,45 @@ export default {
   data() {
     return {
       addAmount: 0,
-      storeData: null,
+      storeData: storeData,
       layout: "default",
       components: [],
       selectedComponent: null,
       lastUpdated: 0,
+      layouts: {
+        default: "default",
+        columns: "columns",
+        stack: "stack",
+      },
     };
   },
   created() {
-    this.storeData = store.load();
     this.addConverters(this.storeData?.length || 1, this.storeData);
 
     window.addEventListener("beforeunload", this.save);
-    bus.$on("add-row", (args) =>
-      this.addConverters(args && args[0] ? args[0] : 1)
+    bus.$on(events.editorAddRow.eventName, (args) =>
+      this.addConverters(args[0] || 1)
     );
-    bus.$on("clear-all", () => this.clearAll());
-    bus.$on("delete-all", () => this.deleteAll());
+    bus.$on(events.editorCopyResult.eventName, () =>
+      this.$copyText(`{ ${this.components.map((c) => c.value).join(", ")} }`)
+    );
+    bus.$on(events.editorClearAllRows.eventName, () => this.clearAll());
+    bus.$on(events.editorDeleteAllRows.eventName, () => this.deleteAll());
+    bus.$on(events.editorDeleteLastRow.eventName, () =>
+      this.deleteOne(this.components.length - 1)
+    );
 
     bus.$on(
-      "change-layout",
-      (args) => (this.layout = args && args[0] ? args[0] : "default")
+      events.editorSetLayoutDefault.eventName,
+      () => (this.layout = this.layouts.default)
+    );
+    bus.$on(
+      events.editorSetLayoutColumns.eventName,
+      () => (this.layout = this.layouts.columns)
+    );
+    bus.$on(
+      events.editorSetLayoutStack.eventName,
+      () => (this.layout = this.layouts.stack)
     );
   },
   methods: {
@@ -149,6 +169,7 @@ export default {
       this.addAmount = 0;
     },
     deleteOne(index) {
+      if (this.components.length <= 1) return;
       this.$delete(this.components, index);
     },
     updateValue(component, newValue) {
@@ -160,12 +181,12 @@ export default {
     },
     deleteAll() {
       this.components = [];
-      let amount = this.layout === "default" ? 1 : 2;
+      let amount = this.layout === this.layouts.default ? 1 : 2;
       this.addConverters(amount);
     },
     save() {
       let saveData = this.components.map((c) => c.value);
-      store.save(saveData);
+      saveStore(saveData);
       window.removeEventListener("beforeunload", this.save);
     },
 
@@ -203,10 +224,10 @@ export default {
       return new Array(Math.ceil(n * 0.5)).fill("auto").join(" ");
     },
     isRightAligned(id) {
-      if (this.layout === "stack") {
+      if (this.layout === this.layouts.columns) {
         let median = Math.ceil(this.components.length / 2);
         return id > median;
-      } else if (this.layout === "sequence") {
+      } else if (this.layout === this.layouts.stack) {
         return id % 2 == false;
       }
     },

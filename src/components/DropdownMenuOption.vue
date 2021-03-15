@@ -10,7 +10,7 @@
         {{ optionName }}
       </span>
       <span class="hotkey">
-        {{ optionProps.hotkey }}
+        {{ accelerator }}
       </span>
       <span v-if="optionProps.options" class="icon">
         <img src="@/assets/icons/chervron-right.svg" alt=">"
@@ -32,12 +32,23 @@
   </li>
 </template>
 <script>
-import { bus } from "@/event-bus";
+import { bus, events } from "@/event-bus";
 
 export default {
   name: "DropdownMenuOption",
   props: {
     option: Object,
+  },
+  computed: {
+    accelerator() {
+      return this.optionProps?.event?.accelerator || "";
+    },
+    event() {
+      return this.optionProps?.event.eventName || "";
+    },
+    args() {
+      return this.optionProps?.event?.args || null;
+    },
   },
   data() {
     return {
@@ -48,8 +59,8 @@ export default {
   methods: {
     callEvent() {
       if (this.optionProps.event) {
-        bus.$emit(this.optionProps.event, this.optionProps.eventArgs || null);
-        bus.$emit("close-toolbar-menu");
+        bus.$emit(this.event, this.args);
+        bus.$emit(events.windowCloseToolbarMenu.eventName);
       } else {
         console.log(`No event specified for "${this.optionName}" action`);
       }

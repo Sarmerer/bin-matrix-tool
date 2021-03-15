@@ -1,36 +1,41 @@
 import fs from "fs";
 import path from "path";
-const settingsFilePath = "./";
+const { app } = require("@electron/remote");
+
+const settingsFilePath = `${app.getAppPath()}/..`;
 const settingsFileName = "settings.json";
 const settingsFile = path.join(settingsFilePath, settingsFileName);
 
-export default {
-  settings: {},
-  data: [],
+let settings = loadSettings();
+let storeData = loadData();
 
-  save(data) {
-    localStorage.setItem("data", JSON.stringify(data));
-  },
-  load() {
-    this.createSettingsFile();
-    //this.settings = this.loadSettings();
-    this.data = JSON.parse(localStorage.getItem("data"));
-    return this.data;
-  },
+function saveStore(data) {
+  localStorage.setItem("data", JSON.stringify(data));
+}
 
-  saveSettings() {},
-  loadSettings() {
-    if (!this.settingsFileExists()) {
-      this.createSettingsFile();
-    }
-    return JSON.parse(fs.readFileSync(settingsFile).toString());
-  },
+function loadData() {
+  return JSON.parse(localStorage.getItem("data"));
+}
 
-  createSettingsFile() {
-    fs.writeFileSync(settingsFile, JSON.stringify({}));
-  },
+function loadSettings() {
+  console.log(settingsFile);
+  if (!settingsFileExists()) {
+    createSettingsFile();
+  }
+  return JSON.parse(fs.readFileSync(settingsFile));
+}
 
-  settingsFileExists() {
-    return fs.access(settingsFile, (err) => err === null);
-  },
-};
+function createSettingsFile() {
+  fs.writeFileSync(settingsFile, JSON.stringify({ keymap: {} }));
+}
+
+function settingsFileExists() {
+  try {
+    fs.accessSync(settingsFile);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export { settings, storeData, saveStore };

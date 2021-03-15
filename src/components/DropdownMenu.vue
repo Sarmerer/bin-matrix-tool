@@ -24,7 +24,7 @@
 <script>
 import DropdownMenuOption from "@/components/DropdownMenuOption";
 import { mixin as clickaway } from "vue-clickaway2";
-import { bus } from "@/event-bus";
+import { bus, events } from "@/event-bus";
 
 export default {
   name: "DropdownMenu",
@@ -37,7 +37,10 @@ export default {
     return { localItems: Object.assign({}, this.items), openedID: -1 };
   },
   created() {
-    bus.$on("close-toolbar-menu", () => (this.openedID = -1));
+    bus.$on(
+      events.windowCloseToolbarMenu.eventName,
+      () => (this.openedID = -1)
+    );
   },
   methods: {
     open(index, isHover) {
@@ -52,7 +55,6 @@ export default {
     close() {
       return function() {
         if (this.openedID === -1) return;
-        console.log("calling close");
         this.openedID = -1;
       };
     },

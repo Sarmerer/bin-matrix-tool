@@ -2,11 +2,13 @@
   <div id="app">
     <title-bar id="title-bar"></title-bar>
     <bit-array id="main"></bit-array>
+    <modal></modal>
   </div>
 </template>
 
 <script>
 import TitleBar from "@/components/TitleBar";
+import Modal from "@/components/Modal";
 import BitArray from "@/components/BitArray";
 
 export default {
@@ -14,6 +16,7 @@ export default {
   components: {
     TitleBar,
     BitArray,
+    Modal,
   },
   beforeDestroy() {
     window.removeEventListener("keydown");

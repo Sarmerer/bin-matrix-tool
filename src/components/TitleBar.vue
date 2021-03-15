@@ -26,7 +26,7 @@
 <script>
 import DropdownMenu from "@/components/DropdownMenu.vue";
 const win = require("@electron/remote").getCurrentWindow();
-import { bus } from "@/event-bus";
+import { bus, events } from "@/event-bus";
 
 export default {
   components: { DropdownMenu },
@@ -38,24 +38,40 @@ export default {
         {
           name: "File",
           options: [
-            { name: "Add row", hotkey: "Ctrl+A", event: "add-row" },
+            {
+              name: "Add row",
+              event: events.editorAddRow,
+            },
+            {
+              name: "Copy result",
+              event: events.editorCopyResult,
+            },
             { splitter: true },
             {
               name: "Clear all cells",
-              hotkey: "Ctrl+Alt+C",
-              event: "clear-all",
+              event: events.editorClearAllRows,
             },
-            { name: "Delete all rows", hotkey: "Ctrl+D", event: "delete-all" },
+            {
+              name: "Delete last row",
+              event: events.editorDeleteLastRow,
+            },
+            {
+              name: "Delete all rows",
+              event: events.editorDeleteAllRows,
+            },
             { splitter: true },
-            { name: "Preferences", options: [{ name: "Open settings file" }] },
+            { name: "Preferences", event: events.windowShowSettings },
           ],
         },
         {
           name: "Window",
           options: [
-            { name: "Always on top", hotkey: "Ctrl+P", event: "pin-to-top" },
-            { name: "Maximize", event: "maximize" },
-            { name: "Minimize", event: "minimize" },
+            {
+              name: "Always on top",
+              event: events.windowPinToTop,
+            },
+            { name: "Maximize", event: events.windowMaximize },
+            { name: "Minimize", event: events.windowMinimize },
           ],
         },
         {
@@ -66,21 +82,15 @@ export default {
               options: [
                 {
                   name: "Default",
-                  hotkey: "Ctrl+1",
-                  event: "change-layout",
-                  eventArgs: ["default"],
+                  event: events.editorSetLayoutDefault,
                 },
                 {
                   name: "Columns",
-                  hotkey: "Ctrl+2",
-                  event: "change-layout",
-                  eventArgs: ["stack"],
+                  event: events.editorSetLayoutColumns,
                 },
                 {
                   name: "Stack",
-                  hotkey: "Ctrl+3",
-                  event: "change-layout",
-                  eventArgs: ["sequence"],
+                  event: events.editorSetLayoutStack,
                 },
               ],
             },
@@ -90,9 +100,9 @@ export default {
     };
   },
   created() {
-    bus.$on("maximize", () => this.maximize());
-    bus.$on("minimize", () => this.minimize());
-    bus.$on("pin-to-top", () => this.setAlwaysOnTop());
+    bus.$on(events.windowMaximize.eventName, () => this.maximize());
+    bus.$on(events.windowMinimize.eventName, () => this.minimize());
+    bus.$on(events.windowPinToTop.eventName, () => this.setAlwaysOnTop());
   },
   methods: {
     setAlwaysOnTop() {

@@ -1,0 +1,14 @@
+{
+  "keymap": {
+    "editor:add-row": "Ctrl+Shift+A",
+    "editor:clear-all-rows": "Ctrl+Shift+C",
+    "editor:delete-all-rows": "Ctrl+Shift+D",
+    "editor:delete-last-row": "Ctrl+Alt+D",
+
+    "editor:set-layout-default": "Ctrl+1",
+    "editor:set-layout-columns": "Ctrl+2",
+    "editor:set-layout-stack": "Ctrl+3",
+
+    "window:pin-to-top": "Ctrl+P"
+  }
+}
