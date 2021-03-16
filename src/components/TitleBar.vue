@@ -26,6 +26,7 @@
 <script>
 import DropdownMenu from "@/components/DropdownMenu.vue";
 const win = require("@electron/remote").getCurrentWindow();
+import { openSettingsFile } from "@/store/store";
 import { bus, events } from "@/event-bus";
 
 export default {
@@ -103,6 +104,7 @@ export default {
     bus.$on(events.windowMaximize.eventName, () => this.maximize());
     bus.$on(events.windowMinimize.eventName, () => this.minimize());
     bus.$on(events.windowPinToTop.eventName, () => this.setAlwaysOnTop());
+    bus.$on(events.windowShowSettings.eventName, () => openSettingsFile());
   },
   methods: {
     setAlwaysOnTop() {

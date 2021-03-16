@@ -89,7 +89,7 @@ export const events = {
   windowMinimize: new Event("window:minimize"),
   windowMaximize: new Event("window:maximize"),
   windowCloseToolbarMenu: new Event("window:close-toolbar-menu"),
-  windowShowSettings: new Event("window:open-settings-modal", "Ctrl+,"),
+  windowShowSettings: new Event("window:show-settings", "Ctrl+,"),
 };
 
 export const shortcutsManager = new ShortcutsManager(

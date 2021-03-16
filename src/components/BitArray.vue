@@ -93,7 +93,7 @@
 </template>
 <script>
 import BitRow from "@/components/BitRow.vue";
-import { storeData, saveStore } from "@/store/store";
+import { settings, storeData, saveStore } from "@/store/store";
 import ContextMenu from "@/components/ContextMenu.vue";
 import { bus, events } from "@/event-bus";
 
@@ -106,8 +106,8 @@ export default {
   data() {
     return {
       addAmount: 0,
-      storeData: storeData,
-      layout: "default",
+      storeData: storeData.inputs,
+      layout: storeData.layout || "default",
       components: [],
       selectedComponent: null,
       lastUpdated: 0,
@@ -125,9 +125,7 @@ export default {
     bus.$on(events.editorAddRow.eventName, (args) =>
       this.addConverters(args[0] || 1)
     );
-    bus.$on(events.editorCopyResult.eventName, () =>
-      this.$copyText(`{ ${this.components.map((c) => c.value).join(", ")} }`)
-    );
+    bus.$on(events.editorCopyResult.eventName, () => this.copyResult());
     bus.$on(events.editorClearAllRows.eventName, () => this.clearAll());
     bus.$on(events.editorDeleteAllRows.eventName, () => this.deleteAll());
     bus.$on(events.editorDeleteLastRow.eventName, () =>
@@ -185,9 +183,28 @@ export default {
       this.addConverters(amount);
     },
     save() {
-      let saveData = this.components.map((c) => c.value);
+      let saveData = {
+        layout: this.layout,
+        inputs: this.components.map((c) => c.value),
+      };
       saveStore(saveData);
       window.removeEventListener("beforeunload", this.save);
+    },
+    copyResult() {
+      let wrapper = settings?.editor?.wrapResultWith;
+
+      wrapper =
+        wrapper.length % 2 === 0
+          ? [
+              wrapper.slice(0, wrapper.length / 2),
+              wrapper.slice(wrapper.length / 2),
+            ]
+          : ["{", "}"];
+      this.$copyText(
+        `${wrapper[0]} ${this.components.map((c) => c.value).join(", ")} ${
+          wrapper[1]
+        }`
+      );
     },
 
     contextMenuHandler(event, clickedComponent) {
