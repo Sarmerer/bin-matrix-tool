@@ -93,7 +93,7 @@
 </template>
 <script>
 import BitRow from "@/components/BitRow.vue";
-import { settings, storeData, saveStore } from "@/store/store";
+import { settings, store } from "@/store/store";
 import ContextMenu from "@/components/ContextMenu.vue";
 import { bus, events } from "@/event-bus";
 
@@ -106,8 +106,8 @@ export default {
   data() {
     return {
       addAmount: 0,
-      storeData: storeData.inputs,
-      layout: storeData.layout || "default",
+      storeData: store.getItem("inputs", []),
+      layout: store.getItem("layout", "default"),
       components: [],
       selectedComponent: null,
       lastUpdated: 0,
@@ -187,7 +187,7 @@ export default {
         layout: this.layout,
         inputs: this.components.map((c) => c.value),
       };
-      saveStore(saveData);
+      store.save(saveData);
       window.removeEventListener("beforeunload", this.save);
     },
     copyResult() {

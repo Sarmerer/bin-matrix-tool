@@ -9,16 +9,6 @@ const settingsFileName = "settings.json";
 const settingsFile = path.join(settingsFilePath, settingsFileName);
 
 let settings = loadSettings();
-let storeData = loadData();
-
-function saveStore(data) {
-  localStorage.setItem("data", JSON.stringify(data));
-  fs.writeFileSync(settingsFile, JSON.stringify(settings));
-}
-
-function loadData() {
-  return JSON.parse(localStorage.getItem("data"));
-}
 
 function openSettingsFile() {
   shell.openPath(settingsFile);
@@ -73,4 +63,28 @@ function settingsFileExists() {
   }
 }
 
-export { settings, storeData, saveStore, openSettingsFile };
+class Store {
+  constructor(name, schema) {
+    this.name = name || "data";
+    if (!localStorage.getItem(this.name)) {
+      this.data = localStorage.setItem(this.name, JSON.stringify(schema || {}));
+    }
+    this.data = JSON.parse(localStorage.getItem(this.name));
+  }
+
+  setItem(key, value) {
+    this.data[key] = value;
+  }
+  getItem(key, undefValue) {
+    return this.data[key] || undefValue;
+  }
+
+  save(data) {
+    localStorage.setItem(this.name, JSON.stringify(data));
+    fs.writeFileSync(settingsFile, JSON.stringify(settings));
+  }
+}
+
+let store = new Store("data", { layout: "", inputs: [] });
+
+export { settings, store, openSettingsFile };
